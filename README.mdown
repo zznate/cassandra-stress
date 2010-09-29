@@ -7,7 +7,7 @@ cassandra-stress is built on top of [Hector](http://github.com/rantav/hector), a
 +  Verbose logging output available
 +  Hooks into performance counters to correllate client and server performance
 
-
+cassandra-stress is a currently just a command line app which supports the following commands (syntactically identical to stress.py where possible):
 
 	usage: stress [options]... url1,[[url2],[url3],...]
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
