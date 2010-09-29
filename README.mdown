@@ -39,5 +39,6 @@ Misc.
 ------
 Offered under an MIT license (see LICENSE in the top level directory). As with any halfway decent load testing tool, you can generate a lot of load and put a system under duress or even cause it to fail. You are solely responsible for any issues experienced the execution of this tool may cause. Use at your own risk.
 
-Cheers, 
+Cheers,
+ 
 zznate 
