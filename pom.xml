@@ -14,36 +14,84 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-					<optimize>true</optimize>
-					<debug>true</debug>
-					<showDeprecation>true</showDeprecation>
-					<showWarnings>true</showWarnings>
-				</configuration>
-			</plugin>
-            <!--
-                run examples thusly: 
-                mvn exec:java -Dexec.mainClass="com.riptano.cassandra.stress.Stress" -Dexec.args="-clients 10"
-            -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.1</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>			
-		</plugins>
+	<plugins>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<configuration>
+				<source>1.6</source>
+				<target>1.6</target>
+				<optimize>true</optimize>
+				<debug>true</debug>
+				<showDeprecation>true</showDeprecation>
+				<showWarnings>true</showWarnings>
+			</configuration>
+		</plugin>
+		<!--
+			run examples thusly: mvn exec:java
+			-Dexec.mainClass="com.riptano.cassandra.stress.Stress"
+			-Dexec.args="-clients 10"
+		-->
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>exec-maven-plugin</artifactId>
+			<version>1.1</version>
+			<executions>
+				<execution>
+					<goals>
+						<goal>java</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>appassembler-maven-plugin
+                </artifactId>
+			<configuration>
+				<programs>
+					<program>
+						<mainClass>com.riptano.cassandra.stress.Stress</mainClass>
+						<name>stress</name>
+					</program>
+				</programs>
+				<repositoryLayout>flat</repositoryLayout>
+			</configuration>
+			<executions>
+				<execution>
+					<phase>install</phase>
+					<goals>
+						<goal>assemble</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-source-plugin</artifactId>
+			<executions>
+				<execution>
+					<goals>
+						<goal>jar</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-surefire-plugin</artifactId>
+			<configuration>
+				<systemProperties>
+					<property>
+						<name>storage-config</name>
+						<value>${basedir}/src/test/conf</value>
+					</property>
+				</systemProperties>
+				<forkMode>always</forkMode>
+			</configuration>
+		</plugin>
+	</plugins>
 	</build>
 	<dependencies>
 		<dependency>
