@@ -6,11 +6,13 @@ cassandra-stress is built on top of [Hector](http://github.com/rantav/hector), a
 + Verbose logging output available
 + Hooks into performance counters to correllate client and server performance
 
-`usage: stress [options]... url1,[[url2],[url3],...]
- -b,--batch-size <arg>   The number of rows in the batch_mutate call
- -c,--columns <arg>      The number of columsn to create per key
- -h,--help               Print this help message and exit
- -n,--num-keys <arg>     The number of keys to create
- -o,--operation <arg>    One of insert, read, rangeslice, multiget
- -t,--threads <arg>      The number of client threads we will create`
+	usage: stress [options]... url1,[[url2],[url3],...]
+	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
+	 -c,--columns <arg>      The number of columsn to create per key
+	 -h,--help               Print this help message and exit
+	 -n,--num-keys <arg>     The number of keys to create
+	 -o,--operation <arg>    One of insert, read, rangeslice, multiget
+	 -t,--threads <arg>      The number of client threads we will create
+
+
 
