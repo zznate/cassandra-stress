@@ -10,9 +10,9 @@ public class CommandFactory {
             return new InsertCommand(startKey, commandArgs, countDownLatch);        
         case READ:
             return new SliceCommand(startKey, commandArgs, countDownLatch);     
-        case RANGE_SLICE:
+        case RANGESLICE:
             return new RangeSliceCommand(startKey, commandArgs, countDownLatch);
-        case MULTI_GET:
+        case MULTIGET:
             // TODO
         };
         return new InsertCommand(startKey, commandArgs, countDownLatch);
