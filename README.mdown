@@ -8,6 +8,7 @@ cassandra-stress is built on top of [Hector](http://github.com/rantav/hector), a
 +  Hooks into performance counters to correllate client and server performance
 
 
+
 	usage: stress [options]... url1,[[url2],[url3],...]
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
 	 -c,--columns <arg>      The number of columsn to create per key
