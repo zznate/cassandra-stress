@@ -1,10 +1,12 @@
 cassandra-stress is modeled after the stress.py script in Apache Cassandra's source distribution.
 
 cassandra-stress is built on top of [Hector](http://github.com/rantav/hector), a well-tested and widely deployed Java client for Apache Cassandra. The benefits of using Hector for a tool like this are many:
-+ JMX hooks into Hector for visibility into runtime statistics
-+ Extensive configurability of which node(s) to target
-+ Verbose logging output available
-+ Hooks into performance counters to correllate client and server performance
+
++  JMX hooks into Hector for visibility into runtime statistics
++  Extensive configurability of which node(s) to target
++  Verbose logging output available
++  Hooks into performance counters to correllate client and server performance
+
 
 	usage: stress [options]... url1,[[url2],[url3],...]
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
