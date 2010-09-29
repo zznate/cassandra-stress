@@ -72,7 +72,7 @@ public class Stress {
         
         if (cmd.hasOption("operation")) {
             commandArgs.operation = cmd.getOptionValue("operation");
-        }
+        }                
         
         int keysPerThread = commandArgs.getKeysPerThread();
         
@@ -81,6 +81,10 @@ public class Stress {
                 commandArgs.batchSize, commandArgs.clients});
         
         CassandraHostConfigurator cassandraHostConfigurator = new CassandraHostConfigurator(seedHost);
+        if ( cmd.hasOption("unframed")) {
+            cassandraHostConfigurator.setUseThriftFramedTransport(false);
+        }
+        
         latencies = new ConcurrentHashMap<CassandraHost, LatencyTracker>();
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         log.info("Retrieved cluster name from host {}",cluster.describeClusterName());
@@ -118,6 +122,7 @@ public class Stress {
         options.addOption("c","columns",true,"The number of columsn to create per key");
         options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");
         options.addOption("o","operation",true,"One of insert, read, rangeslice, multiget");
+        options.addOption("m","unframed",false,"Disable use of TFramedTransport");
         return options;
     }
     

@@ -13,7 +13,7 @@ public class CommandFactory {
         case RANGESLICE:
             return new RangeSliceCommand(startKey, commandArgs, countDownLatch);
         case MULTIGET:
-            // TODO
+            return new MultigetSliceCommand(startKey, commandArgs, countDownLatch);
         };
         return new InsertCommand(startKey, commandArgs, countDownLatch);
     }

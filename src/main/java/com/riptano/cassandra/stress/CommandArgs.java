@@ -18,6 +18,7 @@ public class CommandArgs {
     private static String DEF_OPERATION = "insert";
     
     public int getKeysPerThread() {
+        // TODO check if batchSize is greater than this, reset if so
         return rowCount / clients;
     }
     
