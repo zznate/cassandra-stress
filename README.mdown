@@ -21,15 +21,19 @@ cassandra-stress is a currently just a command line app which supports the follo
 	 -h,--help               Print this help message and exit
 
 Running cassandra-stress is currently easiest via the mvn-exec-plugin. An example invocation is below:
+
 `mvn -e exec:java -Dexec.mainClass="com.riptano.cassandra.stress.Stress" -Dexec.args="-o multiget -b 50 -n 12000"`
+
 
 Todo (in rough priority)
 ------------------------
 +  Roll Jar for non-maven required execution
 +  Create ColumnFamily specifically for test
++  Add JMX innards for MBean driven command/control
++  Apache Cassandra 0.6.x support
 +  Added standard deviation option for gaussian key distribution
 +  SuperColumn support
-+  Apache Cassandra 0.6.x support
+
 
 Misc.
 ------
