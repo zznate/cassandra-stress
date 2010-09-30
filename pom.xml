@@ -79,6 +79,10 @@
 			</executions>
 		</plugin>
 		<plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+        </plugin>
+		<plugin>
 			<groupId>org.apache.maven.plugins</groupId>
 			<artifactId>maven-surefire-plugin</artifactId>
 			<configuration>
@@ -126,8 +130,7 @@
 			<version>1.2.14</version>
 		</dependency>
 	</dependencies>
-
-	<repositories>
+    <repositories>
 		<repository>
 			<id>riptano</id>
 			<name>riptano</name>
