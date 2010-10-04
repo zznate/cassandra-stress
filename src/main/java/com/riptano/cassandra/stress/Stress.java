@@ -1,27 +1,13 @@
 package com.riptano.cassandra.stress;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import jline.ConsoleReader;
-
-import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.cassandra.service.CassandraHost;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.Keyspace;
 import me.prettyprint.hector.api.factory.HFactory;
-import me.prettyprint.hector.api.mutation.Mutator;
 
-import org.apache.cassandra.utils.LatencyTracker;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.slf4j.Logger;
@@ -36,14 +22,11 @@ public class Stress {
     
     private static Logger log = LoggerFactory.getLogger(Stress.class);       
     
-       
-    
     private CommandArgs commandArgs;
     private CommandRunner commandRunner;
     
     
-    public static void main( String[] args ) throws Exception 
-    {
+    public static void main( String[] args ) throws Exception {
         Stress stress = new Stress();
         stress.processArgs(args);
         
@@ -53,18 +36,19 @@ public class Stress {
             if ( line.equalsIgnoreCase("exit")) {
                 System.exit(0);
             }
-            stress.commandArgs.operation = line;
-            if ( stress.commandArgs.validateCommand() ) {
-                stress.processCommand();
-            } else {
-                reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
-            }
+            stress.processCommand(reader, line);
         }
     }
     
-    private void processCommand() throws Exception {
+    private void processCommand(ConsoleReader reader, String line) throws Exception {
         // TODO catch command error(s) here, simply errmsg handoff to stdin loop above
-        commandRunner.processCommand(commandArgs);
+        
+        commandArgs.operation = line;
+        if ( commandArgs.validateCommand() ) {
+            commandRunner.processCommand(commandArgs);    
+        } else {
+            reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
+        }        
     }
     
     
