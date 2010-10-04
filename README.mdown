@@ -25,6 +25,11 @@ Running cassandra-stress is currently easiest via the mvn-exec-plugin. An exampl
 `mvn -e exec:java -Dexec.mainClass="com.riptano.cassandra.stress.Stress" -Dexec.args="-o multiget -b 50 -n 12000"`
 
 
+This project now runs as a stand-alone binary. If you have a binary version, use the command line arguments directly:
+
+`sh bin/stress -o read -b 50 -n 12000 localhost:9160`
+
+
 Todo (in rough priority)
 ------------------------
 +  Roll Jar for non-maven required execution
