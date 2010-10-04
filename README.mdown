@@ -32,10 +32,8 @@ This project now runs as a stand-alone binary. If you have a binary version, use
 
 Todo (in rough priority)
 ------------------------
-+  Roll Jar for non-maven required execution
 +  Create ColumnFamily specifically for test
 +  Add JMX innards for MBean driven command/control
-+  Apache Cassandra 0.6.x support
 +  Add (much) better key distribution (gaussian, stdev argument)
 +  SuperColumn support
 
