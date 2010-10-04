@@ -15,11 +15,11 @@ public class InsertCommand extends StressCommand {
 
     private static Logger log = LoggerFactory.getLogger(InsertCommand.class);
     
-    protected final Mutator<String> mutator;
+    protected final Mutator mutator;
     
     public InsertCommand(int startKey, CommandArgs commandArgs, CountDownLatch countDownLatch) {
         super(startKey, commandArgs, countDownLatch);
-        mutator = HFactory.createMutator(commandArgs.keyspace, StringSerializer.get());
+        mutator = HFactory.createMutator(commandArgs.keyspace);
     }
 
     @Override
@@ -29,7 +29,7 @@ public class InsertCommand extends StressCommand {
         int rows = 0;
         log.info("StartKey: {} for thread {}", startKey, Thread.currentThread().getId());
         while (rows < commandArgs.getKeysPerThread()) {
-            for (int j = 0; j < commandArgs.batchSize; j++) {
+            for (int j = 0; j < commandArgs.batchSize && rows < commandArgs.getKeysPerThread(); j++) {
                 key = String.format("%010d", rows+startKey);
                 for (int j2 = 0; j2 < commandArgs.columnCount; j2++) {
                     mutator.addInsertion(key, "Standard1", HFactory.createStringColumn("c"+j2, "value_"+j2));                    
