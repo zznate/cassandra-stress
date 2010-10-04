@@ -30,16 +30,20 @@ public class RangeSliceCommand extends StressCommand {
         int rows = 0;
         rangeSlicesQuery.setColumnFamily("Standard1");
         log.debug("Starting SliceCommand");
-        while (rows < commandArgs.getKeysPerThread()) {
-            for (int i = 0; i < commandArgs.batchSize; i++) {
-                rangeSlicesQuery.setKeys(String.format("%010d", startKey), String.format("%010d",startKey + commandArgs.getKeysPerThread()));
+        try {
+            while (rows < commandArgs.getKeysPerThread()) {
+                rows+=commandArgs.batchSize;
+                rangeSlicesQuery.setKeys(String.format("%010d", startKey + rows), "");
                 rangeSlicesQuery.setRange(null, null, false, commandArgs.columnCount);
                 QueryResult<OrderedRows<String,String,String>> result = rangeSlicesQuery.execute();
                 LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
                 readCount.addMicro(result.getExecutionTimeMicro());
                 rows++;
+
+                log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
             }
-            log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
+        } catch (Exception e) {
+            log.error("Problem: ", e);
         }
         countDownLatch.countDown();
         log.debug("SliceCommand complete");

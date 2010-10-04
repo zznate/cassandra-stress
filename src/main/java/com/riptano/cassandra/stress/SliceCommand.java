@@ -32,13 +32,17 @@ public class SliceCommand extends StressCommand {
         Random random = new Random();
         sliceQuery.setColumnFamily("Standard1");
         log.debug("Starting SliceCommand");
-        while (rows < commandArgs.getKeysPerThread()) {
-            sliceQuery.setKey(String.format("%010d", startKey + random.nextInt(commandArgs.getKeysPerThread())));
-            sliceQuery.setRange(null, null, false, commandArgs.columnCount);
-            QueryResult<ColumnSlice<String,String>> result = sliceQuery.execute();
-            LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
-            readCount.addMicro(result.getExecutionTimeMicro());
-            rows++;
+        try {
+            while (rows < commandArgs.getKeysPerThread()) {
+                sliceQuery.setKey(String.format("%010d", startKey + random.nextInt(commandArgs.getKeysPerThread())));
+                sliceQuery.setRange(null, null, false, commandArgs.columnCount);
+                QueryResult<ColumnSlice<String,String>> result = sliceQuery.execute();
+                LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+                readCount.addMicro(result.getExecutionTimeMicro());
+                rows++;
+            }
+        } catch (Exception e) {
+            log.error("Problem: ", e);
         }
         countDownLatch.countDown();
         log.debug("SliceCommand complete");

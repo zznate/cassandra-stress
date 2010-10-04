@@ -32,18 +32,22 @@ public class MultigetSliceCommand extends StressCommand {
         multigetSliceQuery.setColumnFamily("Standard1");
         log.debug("Starting MultigetSliceCommand");
         String[] keys = new String[commandArgs.batchSize];
-        while (rows < commandArgs.getKeysPerThread()) {
-            multigetSliceQuery.setRange(null, null, false, commandArgs.columnCount);            
-            for (int i = 0; i < commandArgs.batchSize; i++) {
-                keys[i] = String.format("%010d", startKey + rows);                
-                rows++;
+        try {
+            while (rows < commandArgs.getKeysPerThread()) {
+                multigetSliceQuery.setRange(null, null, false, commandArgs.columnCount);            
+                for (int i = 0; i < commandArgs.batchSize; i++) {
+                    keys[i] = String.format("%010d", startKey + rows);                
+                    rows++;
+                }
+                multigetSliceQuery.setKeys(keys);
+                QueryResult<Rows<String,String,String>> result = multigetSliceQuery.execute();
+                LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+                readCount.addMicro(result.getExecutionTimeMicro());
+
+                log.info("executed multiget batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
             }
-            multigetSliceQuery.setKeys(keys);
-            QueryResult<Rows<String,String,String>> result = multigetSliceQuery.execute();
-            LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
-            readCount.addMicro(result.getExecutionTimeMicro());
-            
-            log.info("executed multiget batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
+        } catch (Exception e) {
+            log.error("Problem: ", e);
         }
         countDownLatch.countDown();
         log.debug("MultigetSliceCommand complete");
