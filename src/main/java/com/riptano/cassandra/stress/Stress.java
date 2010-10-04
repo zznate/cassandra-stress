@@ -6,6 +6,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import jline.ConsoleReader;
+
 import me.prettyprint.cassandra.serializers.StringSerializer;
 import me.prettyprint.cassandra.service.CassandraHost;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
@@ -33,18 +35,42 @@ public class Stress {
     
     private static Logger log = LoggerFactory.getLogger(Stress.class);       
     
-    static Map<CassandraHost, LatencyTracker> latencies;
+    static Map<CassandraHost, LatencyTracker> latencies;   
+    
+    private CommandArgs commandArgs;
     
     public static void main( String[] args ) throws Exception 
     {
-
+        Stress stress = new Stress();
+        stress.processArgs(args);
+        
+        ConsoleReader reader = new ConsoleReader();
+        String line;
+        while ((line = reader.readLine("[cassandra-stress] ")) != null)
+        {
+            if ( line.equalsIgnoreCase("exit")) {
+                System.exit(0);
+            }
+            stress.commandArgs.operation = line;
+            if ( stress.commandArgs.validateCommand() ) {
+                stress.processCommand();
+            } else {
+                reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
+            }
+        }
+    }
+    
+    
+    private void processArgs(String[] args) throws Exception {
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse( buildOptions(), args);
-        if ( cmd.hasOption('h') || cmd.hasOption("help")) {
+        if ( cmd.hasOption("help")) {
             printHelp();
             System.exit(0);
         }
-        CommandArgs commandArgs = new CommandArgs();
+        if ( commandArgs == null ) {
+            commandArgs = new CommandArgs();
+        }
         
 
         if (cmd.hasOption("threads")) {
@@ -69,12 +95,10 @@ public class Stress {
         if ( cmd.hasOption("columns")) {
             commandArgs.columnCount = getIntValueOrExit(cmd, "columns");
         }
-        
-        if (cmd.hasOption("operation")) {
-            commandArgs.operation = cmd.getOptionValue("operation");
-        }                
-        
-        int keysPerThread = commandArgs.getKeysPerThread();
+                
+        if (cmd.hasOption("operation")) {            
+            commandArgs.operation = cmd.getOptionValue("operation"); 
+        }       
         
         log.info("{} {} columns into {} keys in batches of {} from {} threads",
                 new Object[]{commandArgs.operation, commandArgs.columnCount, commandArgs.rowCount, 
@@ -93,11 +117,16 @@ public class Stress {
         }
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
+        processCommand();
+        
+    }
+    
+    private void processCommand() throws Exception {               
         
         CountDownLatch doneSignal = new CountDownLatch(commandArgs.clients);
         ExecutorService exec = Executors.newFixedThreadPool(commandArgs.clients);
         for (int i = 0; i < commandArgs.clients; i++) {            
-            exec.submit(CommandFactory.getInstance(i*keysPerThread, commandArgs, doneSignal));
+            exec.submit(CommandFactory.getInstance(i*commandArgs.getKeysPerThread(), commandArgs, doneSignal));
         }
         log.info("all tasks submitted for execution...");
         doneSignal.await();
@@ -107,7 +136,7 @@ public class Stress {
             log.info("Latency for host {}:\n Op Count {} \nRecentLatencyHistogram {} \nRecent Latency Micros {} \nTotalLatencyHistogram {} \nTotalLatencyMicros {}", 
                     new Object[]{host.getName(), latency.getOpCount(), latency.getRecentLatencyHistogramMicros(), latency.getRecentLatencyMicros(),
                     latency.getTotalLatencyHistogramMicros(), latency.getTotalLatencyMicros()});
-        }
+        }        
     }
     
     // TODO if --use-all-hosts, then buildHostsFromRing()
