@@ -19,9 +19,8 @@ public class RangeSliceCommand extends StressCommand {
     private final RangeSlicesQuery<String, String, String> rangeSlicesQuery;
     private StringSerializer se = StringSerializer.get();
     
-    public RangeSliceCommand(int startKey, CommandArgs commandArgs,
-            CountDownLatch countDownLatch) {
-        super(startKey, commandArgs, countDownLatch);
+    public RangeSliceCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        super(startKey, commandArgs, commandRunner);
         rangeSlicesQuery = HFactory.createRangeSlicesQuery(commandArgs.keyspace, se, se, se);
     }
 
@@ -36,7 +35,7 @@ public class RangeSliceCommand extends StressCommand {
                 rangeSlicesQuery.setKeys(String.format("%010d", startKey + rows), "");
                 rangeSlicesQuery.setRange(null, null, false, commandArgs.columnCount);
                 QueryResult<OrderedRows<String,String,String>> result = rangeSlicesQuery.execute();
-                LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+                LatencyTracker readCount = commandRunner.latencies.get(result.getHostUsed());
                 readCount.addMicro(result.getExecutionTimeMicro());
                 rows++;
 
@@ -45,7 +44,7 @@ public class RangeSliceCommand extends StressCommand {
         } catch (Exception e) {
             log.error("Problem: ", e);
         }
-        countDownLatch.countDown();
+        commandRunner.doneSignal.countDown();
         log.debug("SliceCommand complete");
         return null;
     }

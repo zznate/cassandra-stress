@@ -17,8 +17,8 @@ public class InsertCommand extends StressCommand {
     
     protected final Mutator<String> mutator;
     
-    public InsertCommand(int startKey, CommandArgs commandArgs, CountDownLatch countDownLatch) {
-        super(startKey, commandArgs, countDownLatch);
+    public InsertCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        super(startKey, commandArgs, commandRunner);
         mutator = HFactory.createMutator(commandArgs.keyspace, StringSerializer.get());
     }
 
@@ -38,12 +38,12 @@ public class InsertCommand extends StressCommand {
             }
             
             MutationResult mr = mutator.execute();
-            LatencyTracker writeCount = Stress.latencies.get(mr.getHostUsed());
+            LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
             writeCount.addMicro(mr.getExecutionTimeMicro());
             mutator.discardPendingMutations();
             log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
         }
-        countDownLatch.countDown();
+        commandRunner.doneSignal.countDown();
         log.info("Last key was: {} for thread {}", key, Thread.currentThread().getId());
         // while less than mutationBatchSize,
         // - while less than rowCount
@@ -51,7 +51,7 @@ public class InsertCommand extends StressCommand {
         // mutator.execute();
         
         
-        log.info("Executed chunk of {}. Latch now at {}", commandArgs.getKeysPerThread(), countDownLatch.getCount());
+        log.info("Executed chunk of {}. Latch now at {}", commandArgs.getKeysPerThread(), commandRunner.doneSignal.getCount());
         return null;
     }
     

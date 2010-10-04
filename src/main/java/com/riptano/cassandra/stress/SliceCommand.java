@@ -21,8 +21,8 @@ public class SliceCommand extends StressCommand {
     
     private static StringSerializer se = StringSerializer.get();
     
-    public SliceCommand(int startKey, CommandArgs commandArgs, CountDownLatch countDownLatch) {
-        super(startKey, commandArgs, countDownLatch);
+    public SliceCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        super(startKey, commandArgs, commandRunner);
         sliceQuery = HFactory.createSliceQuery(commandArgs.keyspace, se, se, se);
     }
 
@@ -37,14 +37,14 @@ public class SliceCommand extends StressCommand {
                 sliceQuery.setKey(String.format("%010d", startKey + random.nextInt(commandArgs.getKeysPerThread())));
                 sliceQuery.setRange(null, null, false, commandArgs.columnCount);
                 QueryResult<ColumnSlice<String,String>> result = sliceQuery.execute();
-                LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+                LatencyTracker readCount = commandRunner.latencies.get(result.getHostUsed());
                 readCount.addMicro(result.getExecutionTimeMicro());
                 rows++;
             }
         } catch (Exception e) {
             log.error("Problem: ", e);
         }
-        countDownLatch.countDown();
+        commandRunner.doneSignal.countDown();
         log.debug("SliceCommand complete");
         return null;
     }

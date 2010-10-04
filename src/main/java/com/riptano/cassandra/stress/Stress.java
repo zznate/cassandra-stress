@@ -1,6 +1,7 @@
 package com.riptano.cassandra.stress;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -35,9 +36,11 @@ public class Stress {
     
     private static Logger log = LoggerFactory.getLogger(Stress.class);       
     
-    static Map<CassandraHost, LatencyTracker> latencies;   
+       
     
     private CommandArgs commandArgs;
+    private CommandRunner commandRunner;
+    
     
     public static void main( String[] args ) throws Exception 
     {
@@ -46,8 +49,7 @@ public class Stress {
         
         ConsoleReader reader = new ConsoleReader();
         String line;
-        while ((line = reader.readLine("[cassandra-stress] ")) != null)
-        {
+        while ((line = reader.readLine("[cassandra-stress] ")) != null) {
             if ( line.equalsIgnoreCase("exit")) {
                 System.exit(0);
             }
@@ -58,6 +60,11 @@ public class Stress {
                 reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
             }
         }
+    }
+    
+    private void processCommand() throws Exception {
+        // TODO catch command error(s) here, simply errmsg handoff to stdin loop above
+        commandRunner.processCommand(commandArgs);
     }
     
     
@@ -109,35 +116,16 @@ public class Stress {
             cassandraHostConfigurator.setUseThriftFramedTransport(false);
         }
         
-        latencies = new ConcurrentHashMap<CassandraHost, LatencyTracker>();
+        
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
-        log.info("Retrieved cluster name from host {}",cluster.describeClusterName());
-        for (CassandraHost host : cluster.getKnownPoolHosts(true)) {
-            latencies.put(host, new LatencyTracker());
-        }
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
-        processCommand();
+        commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
+        commandRunner.processCommand(commandArgs);
         
     }
     
-    private void processCommand() throws Exception {               
-        
-        CountDownLatch doneSignal = new CountDownLatch(commandArgs.clients);
-        ExecutorService exec = Executors.newFixedThreadPool(commandArgs.clients);
-        for (int i = 0; i < commandArgs.clients; i++) {            
-            exec.submit(CommandFactory.getInstance(i*commandArgs.getKeysPerThread(), commandArgs, doneSignal));
-        }
-        log.info("all tasks submitted for execution...");
-        doneSignal.await();
-        exec.shutdown();
-        for (CassandraHost host : latencies.keySet()) {
-            LatencyTracker latency = latencies.get(host);
-            log.info("Latency for host {}:\n Op Count {} \nRecentLatencyHistogram {} \nRecent Latency Micros {} \nTotalLatencyHistogram {} \nTotalLatencyMicros {}", 
-                    new Object[]{host.getName(), latency.getOpCount(), latency.getRecentLatencyHistogramMicros(), latency.getRecentLatencyMicros(),
-                    latency.getTotalLatencyHistogramMicros(), latency.getTotalLatencyMicros()});
-        }        
-    }
+
     
     // TODO if --use-all-hosts, then buildHostsFromRing()
     // treat the host as a single arg, init cluster and call addHosts for the ring
