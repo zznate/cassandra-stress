@@ -11,12 +11,12 @@ public abstract class StressCommand implements Callable<Void> {
     
     protected final CommandArgs commandArgs;
     protected final int startKey;
-    protected final CountDownLatch countDownLatch;
+    protected final CommandRunner commandRunner;
     
-    public StressCommand(int startKey, CommandArgs commandArgs, CountDownLatch countDownLatch) {
+    public StressCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
         this.commandArgs = commandArgs;
         this.startKey = startKey;        
-        this.countDownLatch = countDownLatch;
+        this.commandRunner = commandRunner;
     }
 
 }

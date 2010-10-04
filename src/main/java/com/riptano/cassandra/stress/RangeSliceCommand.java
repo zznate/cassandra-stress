@@ -18,11 +18,11 @@ public class RangeSliceCommand extends StressCommand {
     
     private final RangeSlicesQuery<String, String> rangeSlicesQuery;
     private StringSerializer se = StringSerializer.get();
-    
-    public RangeSliceCommand(int startKey, CommandArgs commandArgs,
-            CountDownLatch countDownLatch) {
-        super(startKey, commandArgs, countDownLatch);
+
+    public RangeSliceCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        super(startKey, commandArgs, commandRunner);
         rangeSlicesQuery = HFactory.createRangeSlicesQuery(commandArgs.keyspace, se, se);
+
     }
 
     @Override
@@ -33,18 +33,19 @@ public class RangeSliceCommand extends StressCommand {
         try{
             while (rows < commandArgs.getKeysPerThread()) {
                 rows+=commandArgs.batchSize;
+
                 rangeSlicesQuery.setKeys(String.format("%010d", startKey), "");
                 rangeSlicesQuery.setRange("", "", false, commandArgs.columnCount);
                 rangeSlicesQuery.setRowCount(commandArgs.batchSize);
                 QueryResult<OrderedRows<String,String>> result = rangeSlicesQuery.execute();
-                LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+                LatencyTracker readCount = commandRunner.latencies.get(result.getHostUsed());
                 readCount.addMicro(result.getExecutionTimeMicro());           
                 log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
             }
         } catch (Exception e) {
             log.error("Problem: ",e);
         }
-        countDownLatch.countDown();
+        commandRunner.doneSignal.countDown();
         log.debug("SliceCommand complete");
         return null;
     }

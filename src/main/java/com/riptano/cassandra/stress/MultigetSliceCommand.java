@@ -20,10 +20,10 @@ public class MultigetSliceCommand extends StressCommand {
     private final MultigetSliceQuery multigetSliceQuery;
     private final StringSerializer se = StringSerializer.get();
     
-    public MultigetSliceCommand(int startKey, CommandArgs commandArgs,
-            CountDownLatch countDownLatch) {
-        super(startKey, commandArgs, countDownLatch);
+    public MultigetSliceCommand(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        super(startKey, commandArgs, commandRunner);
         multigetSliceQuery = HFactory.createMultigetSliceQuery(commandArgs.keyspace, se, se);
+
     }
 
     @Override
@@ -32,6 +32,7 @@ public class MultigetSliceCommand extends StressCommand {
         multigetSliceQuery.setColumnFamily("Standard1");
         log.debug("Starting MultigetSliceCommand");
         String[] keys = new String[commandArgs.batchSize];
+
         while (rows < commandArgs.getKeysPerThread()) {
             multigetSliceQuery.setRange("", "", false, commandArgs.columnCount);            
             for (int i = 0; i < commandArgs.batchSize && rows < commandArgs.getKeysPerThread(); i++) {
@@ -40,12 +41,13 @@ public class MultigetSliceCommand extends StressCommand {
             }
             multigetSliceQuery.setKeys(keys);
             QueryResult<Rows<String,String>> result = multigetSliceQuery.execute();
-            LatencyTracker readCount = Stress.latencies.get(result.getHostUsed());
+            LatencyTracker readCount = commandRunner.latencies.get(result.getHostUsed());
+
             readCount.addMicro(result.getExecutionTimeMicro());
             
             log.info("executed multiget batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
         }
-        countDownLatch.countDown();
+        commandRunner.doneSignal.countDown();
         log.debug("MultigetSliceCommand complete");
 
         return null;
