@@ -22,9 +22,16 @@ public class CommandArgs {
         return rowCount / clients;
     }
     
-
+    public boolean validateCommand() {
+        try {
+            getOperation();
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
     
-    public Operation getOperation() {
+    public Operation getOperation() {        
         return Operation.get(operation);
     }
     
