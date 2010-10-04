@@ -24,11 +24,20 @@ public class Stress {
     
     private CommandArgs commandArgs;
     private CommandRunner commandRunner;
-    
+    private static String seedHost;
     
     public static void main( String[] args ) throws Exception {
         Stress stress = new Stress();
-        stress.processArgs(args);
+        CommandLine cmd = stress.processArgs(args);
+        // If we got an initial help, leave
+        if ( cmd.hasOption("help") ) {
+            System.exit(0);
+        }
+        seedHost = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : "localhost:9160";
+        
+        log.info("Starting stress run using seed {} for {} clients...", seedHost, stress.commandArgs.clients);
+        
+        stress.initializeCommandRunner(cmd);
         
         ConsoleReader reader = new ConsoleReader();
         String line;
@@ -42,8 +51,9 @@ public class Stress {
     
     private void processCommand(ConsoleReader reader, String line) throws Exception {
         // TODO catch command error(s) here, simply errmsg handoff to stdin loop above
-        
-        commandArgs.operation = line;
+        CommandLine cmd = processArgs(line.split(" "));
+        if (cmd.hasOption("help")) 
+            return;
         if ( commandArgs.validateCommand() ) {
             commandRunner.processCommand(commandArgs);    
         } else {
@@ -52,12 +62,12 @@ public class Stress {
     }
     
     
-    private void processArgs(String[] args) throws Exception {
+    private CommandLine processArgs(String[] args) throws Exception {
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse( buildOptions(), args);
         if ( cmd.hasOption("help")) {
             printHelp();
-            System.exit(0);
+            return cmd;
         }
         if ( commandArgs == null ) {
             commandArgs = new CommandArgs();
@@ -67,12 +77,7 @@ public class Stress {
         if (cmd.hasOption("threads")) {
             commandArgs.clients = getIntValueOrExit(cmd, "threads");
         }
-        
-                    
-        String seedHost = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : "localhost:9160";
-        
-        log.info("Starting stress run using seed {} for {} clients...", seedHost, commandArgs.clients);
-        
+                                            
     
         if ( cmd.hasOption("num-keys") ) {
             commandArgs.rowCount = getIntValueOrExit(cmd, "num-keys");
@@ -94,21 +99,23 @@ public class Stress {
         log.info("{} {} columns into {} keys in batches of {} from {} threads",
                 new Object[]{commandArgs.operation, commandArgs.columnCount, commandArgs.rowCount, 
                 commandArgs.batchSize, commandArgs.clients});
-        
+                               
+        return cmd;
+    }
+    
+    private void initializeCommandRunner(CommandLine cmd) throws Exception {
+
         CassandraHostConfigurator cassandraHostConfigurator = new CassandraHostConfigurator(seedHost);
         if ( cmd.hasOption("unframed")) {
             cassandraHostConfigurator.setUseThriftFramedTransport(false);
-        }
-        
+        }        
         
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
-        commandRunner.processCommand(commandArgs);
-        
+        commandRunner.processCommand(commandArgs);       
     }
-    
 
     
     // TODO if --use-all-hosts, then buildHostsFromRing()
