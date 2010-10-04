@@ -13,6 +13,13 @@ import org.apache.cassandra.utils.LatencyTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Segments the execution from the command implementation. Also holds
+ * the CountDownLatch and latency tracker structures for tracking 
+ * progress and statistics
+ *  
+ * @author zznate <nate@riptano.com>
+ */
 public class CommandRunner {
     
     private static final Logger log = LoggerFactory.getLogger(CommandRunner.class);
