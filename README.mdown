@@ -20,21 +20,40 @@ cassandra-stress is a currently just a command line app which supports the follo
 	 -t,--threads <arg>      The number of client threads to create
 	 -h,--help               Print this help message and exit
 
-Running cassandra-stress is currently easiest via the mvn-exec-plugin. An example invocation is below:
 
-`mvn -e exec:java -Dexec.mainClass="com.riptano.cassandra.stress.Stress" -Dexec.args="-o multiget -b 50 -n 12000"`
 
 This project now runs as a stand-alone binary. If you have a binary version, use the command line arguments directly:  
 
 `sh bin/stress -o read -b 50 -n 12000 localhost:9160`  
 
 
+This will perform the operation then drop you into a shell in which you can perform additional operations. The command syntax is similar to the initial call, except that the operation is the only argument:  
+
+	[cassandra-stress] 
+	usage: operation [options]
+	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
+	 -c,--columns <arg>      The number of columsn to create per key
+	 -h,--help               Print this help message and exit
+	 -m,--unframed           Disable use of TFramedTransport
+	 -n,--num-keys <arg>     The number of keys to create
+	 -t,--threads <arg>      The number of client threads we will create
+
+To re-run the operation again, just type the operation name. So from the initial example above, re-running the read operation with the same parameters would be:  
+
+`[cassanra-stress] read`
+
+
+The main benefit of going into a shell is that it keeps the JVM and connection pool machinery warm, so additional test runs will not have the overhead of spinning everything up.
+
+
 Todo (in rough priority)
 ------------------------
 +  Create ColumnFamily specifically for test
 +  Add JMX innards for MBean driven command/control
++  Add replay N times functionality from shell
 +  Add (much) better key distribution (gaussian, stdev argument)
 +  SuperColumn support
+
 
 
 Misc.
