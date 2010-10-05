@@ -1,5 +1,6 @@
 package com.riptano.cassandra.stress;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,7 @@ public class CommandRunner {
     
     final Map<CassandraHost, LatencyTracker> latencies;
     CountDownLatch doneSignal;
+    private Operation previousOperation;
     
     public CommandRunner(Set<CassandraHost> cassandraHosts) {
         latencies = new ConcurrentHashMap<CassandraHost, LatencyTracker>();        
@@ -35,22 +37,46 @@ public class CommandRunner {
     }
     
     
-    public void processCommand(CommandArgs commandArgs) throws Exception {               
-                       
-        doneSignal = new CountDownLatch(commandArgs.clients);
-        ExecutorService exec = Executors.newFixedThreadPool(commandArgs.clients);
-        for (int i = 0; i < commandArgs.clients; i++) {            
-            exec.submit(CommandFactory.getInstance(i*commandArgs.getKeysPerThread(), commandArgs, this));
+    public void processCommand(CommandArgs commandArgs) throws Exception {
+        if ( commandArgs.getOperation() != Operation.REPLAY ) {
+            previousOperation = commandArgs.getOperation();
         }
-        log.info("all tasks submitted for execution...");
-        doneSignal.await();
+        
+        ExecutorService exec = Executors.newFixedThreadPool(commandArgs.clients);
+        for (int execCount = 0; execCount < commandArgs.getExecutionCount(); execCount++) {
+            doneSignal = new CountDownLatch(commandArgs.clients);
+            for (int i = 0; i < commandArgs.clients; i++) {            
+                exec.submit(getCommandInstance(i*commandArgs.getKeysPerThread(), commandArgs, this));
+            }
+            log.info("all tasks submitted for execution for execution {} of {}", execCount+1, commandArgs.getExecutionCount());
+            doneSignal.await();    
+        }                
         exec.shutdown();
+        
         for (CassandraHost host : latencies.keySet()) {
             LatencyTracker latency = latencies.get(host);
             log.info("Latency for host {}:\n Op Count {} \nRecentLatencyHistogram {} \nRecent Latency Micros {} \nTotalLatencyHistogram {} \nTotalLatencyMicros {}", 
                     new Object[]{host.getName(), latency.getOpCount(), latency.getRecentLatencyHistogramMicros(), latency.getRecentLatencyMicros(),
                     latency.getTotalLatencyHistogramMicros(), latency.getTotalLatencyMicros()});
         }        
+    }
+    
+    private StressCommand getCommandInstance(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+        Operation operation = commandArgs.getOperation();
+        if ( operation.equals(Operation.REPLAY )) {
+            operation = previousOperation;
+        }
+        switch(operation) {
+        case INSERT:
+            return new InsertCommand(startKey, commandArgs, commandRunner);        
+        case READ:
+            return new SliceCommand(startKey, commandArgs, commandRunner);     
+        case RANGESLICE:
+            return new RangeSliceCommand(startKey, commandArgs, commandRunner);
+        case MULTIGET:
+            return new MultigetSliceCommand(startKey, commandArgs, commandRunner);
+        };
+        return new InsertCommand(startKey, commandArgs, commandRunner);
     }
 
 }

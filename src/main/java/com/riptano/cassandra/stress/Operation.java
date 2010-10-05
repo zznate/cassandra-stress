@@ -4,7 +4,8 @@ public enum Operation {
     INSERT("insert"),
     READ("read"),
     RANGESLICE("rangeslice"),
-    MULTIGET("multiget");
+    MULTIGET("multiget"),
+    REPLAY("replay");
     
     private final String op;
     
