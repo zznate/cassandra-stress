@@ -30,14 +30,19 @@ public class Stress {
         Stress stress = new Stress();
         CommandLine cmd = stress.processArgs(args);
         // If we got an initial help, leave
-        if ( cmd.hasOption("help") ) {
+        if ( cmd.hasOption("help") || cmd.getArgList().size() == 0 ) {
+            printHelp(true);
             System.exit(0);
         }
-        seedHost = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : "localhost:9160";
+        seedHost = cmd.getArgList().size() > 1 ? cmd.getArgs()[1] : cmd.getArgs()[0];
         
         log.info("Starting stress run using seed {} for {} clients...", seedHost, stress.commandArgs.clients);
-        
-        stress.initializeCommandRunner(cmd);
+        try {
+            stress.initializeCommandRunner(cmd);
+        } catch (IllegalArgumentException iae) {
+            printHelp(true);
+            System.exit(0);
+        }
         
         ConsoleReader reader = new ConsoleReader();
         String line;
@@ -58,6 +63,7 @@ public class Stress {
             commandRunner.processCommand(commandArgs);    
         } else {
             reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
+            printHelp(false);
         }        
     }
     
@@ -66,7 +72,7 @@ public class Stress {
         CommandLineParser parser = new PosixParser();
         CommandLine cmd = parser.parse( buildOptions(), args);
         if ( cmd.hasOption("help")) {
-            printHelp();
+            printHelp(false);
             return cmd;
         }
         if ( commandArgs == null ) {
@@ -94,7 +100,12 @@ public class Stress {
                 
         if (cmd.hasOption("operation")) {            
             commandArgs.operation = cmd.getOptionValue("operation"); 
-        }       
+        } else {
+            // reset args from no-arg if we have one
+            commandArgs.operation = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : commandArgs.operation;
+        }
+        
+        
         
         log.info("{} {} columns into {} keys in batches of {} from {} threads",
                 new Object[]{commandArgs.operation, commandArgs.columnCount, commandArgs.rowCount, 
@@ -114,7 +125,11 @@ public class Stress {
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
-        commandRunner.processCommand(commandArgs);       
+        if ( commandArgs.validateCommand() ) {
+            commandRunner.processCommand(commandArgs);
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 
     
@@ -128,15 +143,18 @@ public class Stress {
         options.addOption("t","threads", true, "The number of client threads we will create");
         options.addOption("n","num-keys",true,"The number of keys to create");
         options.addOption("c","columns",true,"The number of columsn to create per key");
-        options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");
-        options.addOption("o","operation",true,"One of insert, read, rangeslice, multiget");
+        options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");        
         options.addOption("m","unframed",false,"Disable use of TFramedTransport");
         return options;
     }
     
-    private static void printHelp() {
+    private static void printHelp(boolean withInit) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp( "stress [options]... url1,[[url2],[url3],...]", buildOptions() );
+        if (withInit) {
+            formatter.printHelp( "stress [options]... operation url1,[[url2],[url3],...]", buildOptions() );
+        } else {
+            formatter.printHelp( "operation [options]", buildOptions() );
+        }
     }
     
     private static int getIntValueOrExit(CommandLine cmd, String optionVal) {
