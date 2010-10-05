@@ -29,6 +29,7 @@ This will perform the operation then drop you into a shell in which you can perf
 
 	[cassandra-stress] 
 	usage: operation [options]
+	operation can be one of: insert, read, rangeslice, multiget, replay [N]
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
 	 -c,--columns <arg>      The number of columsn to create per key
 	 -h,--help               Print this help message and exit
