@@ -60,7 +60,7 @@ public class Stress {
         if (cmd.hasOption("help")) 
             return;
         if ( commandArgs.validateCommand() ) {
-            commandRunner.processCommand(commandArgs);    
+            commandRunner.processCommand(commandArgs);            
         } else {
             reader.printString("Invalid command. Must be one of: read, rangeslice, multiget\n");
             printHelp(false);
@@ -104,9 +104,14 @@ public class Stress {
             // reset args from no-arg if we have one
             commandArgs.operation = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : commandArgs.operation;
         }
-        
-        
-        
+        if ( commandArgs.getOperation() == Operation.REPLAY ) {
+            try {
+                commandArgs.replayCount = cmd.getArgList().size() > 1 ? Integer.valueOf(cmd.getArgs()[1]) : 1;
+            } catch (NumberFormatException nfe) {
+                throw new IllegalArgumentException("The replay command can only take a resonably sized number as an (optional) argument");
+            }
+        }
+                        
         log.info("{} {} columns into {} keys in batches of {} from {} threads",
                 new Object[]{commandArgs.operation, commandArgs.columnCount, commandArgs.rowCount, 
                 commandArgs.batchSize, commandArgs.clients});
@@ -125,7 +130,7 @@ public class Stress {
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
-        if ( commandArgs.validateCommand() ) {
+        if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {            
             commandRunner.processCommand(commandArgs);
         } else {
             throw new IllegalArgumentException();
