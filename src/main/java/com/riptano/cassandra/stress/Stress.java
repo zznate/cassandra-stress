@@ -2,6 +2,7 @@ package com.riptano.cassandra.stress;
 
 import jline.ConsoleReader;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
+import me.prettyprint.cassandra.service.PoolType;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.factory.HFactory;
 
@@ -36,7 +37,7 @@ public class Stress {
         }
         seedHost = cmd.getArgList().size() > 1 ? cmd.getArgs()[1] : cmd.getArgs()[0];
         
-        log.info("Starting stress run using seed {} for {} clients...", seedHost, stress.commandArgs.clients);
+        log.info("Starting stress run using seed {} for {} clients...", seedHost, stress.commandArgs.threads);
         try {
             stress.initializeCommandRunner(cmd);
         } catch (IllegalArgumentException iae) {
@@ -81,9 +82,13 @@ public class Stress {
         
 
         if (cmd.hasOption("threads")) {
-            commandArgs.clients = getIntValueOrExit(cmd, "threads");
+            commandArgs.threads = getIntValueOrExit(cmd, "threads");
         }
-                                            
+        
+        if (cmd.hasOption("clients")) {
+            commandArgs.clients = getIntValueOrExit(cmd, "clients");
+        }
+        
     
         if ( cmd.hasOption("num-keys") ) {
             commandArgs.rowCount = getIntValueOrExit(cmd, "num-keys");
@@ -96,6 +101,10 @@ public class Stress {
 
         if ( cmd.hasOption("columns")) {
             commandArgs.columnCount = getIntValueOrExit(cmd, "columns");
+        }
+        
+        if ( cmd.hasOption("colwidth")) {
+            commandArgs.columnWidth = getIntValueOrExit(cmd, "colwidth");
         }
                 
         if (cmd.hasOption("operation")) {            
@@ -114,7 +123,7 @@ public class Stress {
                         
         log.info("{} {} columns into {} keys in batches of {} from {} threads",
                 new Object[]{commandArgs.operation, commandArgs.columnCount, commandArgs.rowCount, 
-                commandArgs.batchSize, commandArgs.clients});
+                commandArgs.batchSize, commandArgs.threads});
                                
         return cmd;
     }
@@ -122,10 +131,13 @@ public class Stress {
     private void initializeCommandRunner(CommandLine cmd) throws Exception {
 
         CassandraHostConfigurator cassandraHostConfigurator = new CassandraHostConfigurator(seedHost);
+        if ( cmd.hasOption("concurrent")) {
+            cassandraHostConfigurator.setPoolType(PoolType.CONCURENT);    
+        }        
         if ( cmd.hasOption("unframed")) {
             cassandraHostConfigurator.setUseThriftFramedTransport(false);
         }        
-        
+        cassandraHostConfigurator.setMaxActive(commandArgs.clients);
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
@@ -148,8 +160,11 @@ public class Stress {
         options.addOption("t","threads", true, "The number of client threads we will create");
         options.addOption("n","num-keys",true,"The number of keys to create");
         options.addOption("c","columns",true,"The number of columsn to create per key");
+        options.addOption("C","clients",true,"The number of pooled clients to use");
         options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");        
         options.addOption("m","unframed",false,"Disable use of TFramedTransport");
+        options.addOption("w","colwidth",true,"The widht of the column in bytes. Default is 16");
+        options.addOption("concurrent",false,"Use the concurrent host pool implementation");
         return options;
     }
     

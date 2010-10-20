@@ -8,10 +8,13 @@ import me.prettyprint.hector.api.mutation.MutationResult;
 import me.prettyprint.hector.api.mutation.Mutator;
 
 import org.apache.cassandra.utils.LatencyTracker;
+import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class InsertCommand extends StressCommand {
+
+    private static final String KEY_FORMAT = "%010d";
 
     private static Logger log = LoggerFactory.getLogger(InsertCommand.class);
     
@@ -26,22 +29,37 @@ public class InsertCommand extends StressCommand {
     public Void call() throws Exception {
 
         String key = null;
-        int rows = 0;
+        // take into account string formatting for column width
+        int colWidth = commandArgs.columnWidth - 9 <= 0 ? 7 : commandArgs.columnWidth -9;  
+        int rows = 0;        
         log.info("StartKey: {} for thread {}", startKey, Thread.currentThread().getId());
         while (rows < commandArgs.getKeysPerThread()) {
-            for (int j = 0; j < commandArgs.batchSize; j++) {
-                key = String.format("%010d", rows+startKey);
-                for (int j2 = 0; j2 < commandArgs.columnCount; j2++) {
-                    mutator.addInsertion(key, "Standard1", HFactory.createStringColumn("c"+j2, "value_"+j2));                    
-                }
-                rows++;
+            if ( log.isDebugEnabled() ) {
+                log.debug("rows at: {} for thread {}", rows, Thread.currentThread().getId());
             }
-            
-            MutationResult mr = mutator.execute();
-            LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
-            writeCount.addMicro(mr.getExecutionTimeMicro());
-            mutator.discardPendingMutations();
-            log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
+            for (int j = 0; j < commandArgs.batchSize; j++) {
+                key = String.format(KEY_FORMAT, rows+startKey);
+                for (int j2 = 0; j2 < commandArgs.columnCount; j2++) {
+                    mutator.addInsertion(key, "Standard1", HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, j2),
+                            String.format(COLUMN_VAL_FORMAT, j2, RandomStringUtils.random(colWidth))));                    
+                }
+                
+                if (++rows == commandArgs.getKeysPerThread() ) {
+                    break;
+                }
+                
+            }
+            try {
+                MutationResult mr = mutator.execute();
+                LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
+                writeCount.addMicro(mr.getExecutionTimeMicro());
+                mutator.discardPendingMutations();
+
+                log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
+
+            } catch (Exception ex){
+                log.error("Problem executing insert:",ex);
+            }
         }
         commandRunner.doneSignal.countDown();
         log.info("Last key was: {} for thread {}", key, Thread.currentThread().getId());
@@ -55,5 +73,6 @@ public class InsertCommand extends StressCommand {
         return null;
     }
     
-    
+    private static final String COLUMN_VAL_FORMAT = "%08d_%s";
+    private static final String COLUMN_NAME_FORMAT = "col_%08d";
 }

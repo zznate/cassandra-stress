@@ -7,9 +7,11 @@ public class CommandArgs {
     public Keyspace keyspace;    
     public int rowCount = DEF_INSERT_COUNT; 
     public int columnCount = DEF_COLUMN_COUNT; 
+    public int columnWidth = DEF_COLUMN_WIDTH;
     public int batchSize = DEF_BATCH_SIZE;
     public String operation = DEF_OPERATION;
-    public int clients = DEF_CLIENTS;   
+    public int threads = DEF_CLIENTS;
+    public int clients = DEF_CLIENTS;
     public int replayCount = DEF_REPLAY_COUNT;
     
     private static int DEF_CLIENTS = 50;
@@ -18,10 +20,11 @@ public class CommandArgs {
     private static int DEF_COLUMN_COUNT = 10;
     private static String DEF_OPERATION = "insert";
     private static int DEF_REPLAY_COUNT = 0;
+    private static int DEF_COLUMN_WIDTH = 16;
     
     public int getKeysPerThread() {
         // TODO check if batchSize is greater than this, reset if so
-        return rowCount / clients;
+        return rowCount / threads;
     }
     
     public int getExecutionCount() {

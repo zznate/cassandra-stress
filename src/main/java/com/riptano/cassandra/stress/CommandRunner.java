@@ -1,5 +1,6 @@
 package com.riptano.cassandra.stress;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -42,15 +43,21 @@ public class CommandRunner {
             previousOperation = commandArgs.getOperation();
         }
         
-        ExecutorService exec = Executors.newFixedThreadPool(commandArgs.clients);
+        ExecutorService exec = Executors.newFixedThreadPool(commandArgs.threads);
+        log.info("Starting command run at {}", new Date());
+        long currentTime = System.currentTimeMillis();
         for (int execCount = 0; execCount < commandArgs.getExecutionCount(); execCount++) {
-            doneSignal = new CountDownLatch(commandArgs.clients);
-            for (int i = 0; i < commandArgs.clients; i++) {            
+            doneSignal = new CountDownLatch(commandArgs.threads);
+            for (int i = 0; i < commandArgs.threads; i++) {
+                log.info("submitting task {}", i+1);
                 exec.submit(getCommandInstance(i*commandArgs.getKeysPerThread(), commandArgs, this));
             }
             log.info("all tasks submitted for execution for execution {} of {}", execCount+1, commandArgs.getExecutionCount());
             doneSignal.await();    
-        }                
+        }
+        log.info("Finished command run at {} total duration: {} seconds", new Date(), (System.currentTimeMillis()-currentTime)/1000);
+        
+        
         exec.shutdown();
         
         for (CassandraHost host : latencies.keySet()) {
