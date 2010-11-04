@@ -138,6 +138,8 @@ public class Stress {
             cassandraHostConfigurator.setUseThriftFramedTransport(false);
         }        
         cassandraHostConfigurator.setMaxActive(commandArgs.clients);
+        cassandraHostConfigurator.setMaxWaitTimeWhenExhausted(200);
+        cassandraHostConfigurator.setCassandraThriftSocketTimeout(500);
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
