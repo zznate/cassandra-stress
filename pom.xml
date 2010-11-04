@@ -4,7 +4,7 @@
 
 	<groupId>com.riptano.cassandra.stress</groupId>
 	<artifactId>cassandra-stress</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>0.7_11042010</version>
 	<packaging>jar</packaging>
 
 	<name>cassandra-stress</name>
