@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>me.prettyprint</groupId>
 			<artifactId>hector</artifactId>
-			<version>0.7.0-19_10262010</version>
+			<version>0.7.0-19_11082010</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>

@@ -2,7 +2,6 @@ package com.riptano.cassandra.stress;
 
 import jline.ConsoleReader;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
-import me.prettyprint.cassandra.service.PoolType;
 import me.prettyprint.hector.api.Cluster;
 import me.prettyprint.hector.api.factory.HFactory;
 
@@ -41,6 +40,7 @@ public class Stress {
         try {
             stress.initializeCommandRunner(cmd);
         } catch (IllegalArgumentException iae) {
+            log.error("Could not run command:",iae);
             printHelp(true);
             System.exit(0);
         }
@@ -80,7 +80,6 @@ public class Stress {
             commandArgs = new CommandArgs();
         }
         
-
         if (cmd.hasOption("threads")) {
             commandArgs.threads = getIntValueOrExit(cmd, "threads");
         }
@@ -88,12 +87,11 @@ public class Stress {
         if (cmd.hasOption("clients")) {
             commandArgs.clients = getIntValueOrExit(cmd, "clients");
         }
-        
-    
+            
+            
         if ( cmd.hasOption("num-keys") ) {
             commandArgs.rowCount = getIntValueOrExit(cmd, "num-keys");
         }
-        log.error("comArgs: " + commandArgs.rowCount);
 
         if ( cmd.hasOption("batch-size")) {
             commandArgs.batchSize = getIntValueOrExit(cmd, "batch-size");
@@ -131,15 +129,20 @@ public class Stress {
     private void initializeCommandRunner(CommandLine cmd) throws Exception {
 
         CassandraHostConfigurator cassandraHostConfigurator = new CassandraHostConfigurator(seedHost);
-        if ( cmd.hasOption("concurrent")) {
-            cassandraHostConfigurator.setPoolType(PoolType.CONCURENT);    
-        }        
+        
         if ( cmd.hasOption("unframed")) {
             cassandraHostConfigurator.setUseThriftFramedTransport(false);
+        }
+        if (cmd.hasOption("max-wait")) {
+            cassandraHostConfigurator.setMaxWaitTimeWhenExhausted(getIntValueOrExit(cmd, "max-wait"));
         }        
+        if (cmd.hasOption("thrift-timeout")) {
+            cassandraHostConfigurator.setCassandraThriftSocketTimeout(getIntValueOrExit(cmd, "thrift-timeout"));
+        }    
         cassandraHostConfigurator.setMaxActive(commandArgs.clients);
-        cassandraHostConfigurator.setMaxWaitTimeWhenExhausted(200);
-        cassandraHostConfigurator.setCassandraThriftSocketTimeout(500);
+        cassandraHostConfigurator.setAutoDiscoverHosts(true);
+        cassandraHostConfigurator.setAutoDiscoveryDelayInSeconds(10);
+        
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
         commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
@@ -166,6 +169,8 @@ public class Stress {
         options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");        
         options.addOption("m","unframed",false,"Disable use of TFramedTransport");
         options.addOption("w","colwidth",true,"The widht of the column in bytes. Default is 16");
+        options.addOption("mw","max-wait",true,"The Maximum time to wait on aquiring a connection from the pool (maxWaitTimeWhenExhausted). Default is forever.");
+        options.addOption("tt","thrift-timeout",true,"The ThriftSocketTimeout value.");
         options.addOption("concurrent",false,"Use the concurrent host pool implementation");
         return options;
     }
