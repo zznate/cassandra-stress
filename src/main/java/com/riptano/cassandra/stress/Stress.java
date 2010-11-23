@@ -111,7 +111,13 @@ public class Stress {
             // reset args from no-arg if we have one
             commandArgs.operation = cmd.getArgList().size() > 0 ? cmd.getArgs()[0] : commandArgs.operation;
         }
-        if ( commandArgs.getOperation() == Operation.REPLAY ) {
+        Operation actOpt;
+        try {
+            actOpt = commandArgs.getOperation();        
+        } catch (IllegalArgumentException iae) {
+            return cmd;
+        }
+        if ( actOpt == Operation.REPLAY ) {
             try {
                 commandArgs.replayCount = cmd.getArgList().size() > 1 ? Integer.valueOf(cmd.getArgs()[1]) : 1;
             } catch (NumberFormatException nfe) {
@@ -138,10 +144,20 @@ public class Stress {
         }        
         if (cmd.hasOption("thrift-timeout")) {
             cassandraHostConfigurator.setCassandraThriftSocketTimeout(getIntValueOrExit(cmd, "thrift-timeout"));
-        }    
+        }            
         cassandraHostConfigurator.setMaxActive(commandArgs.clients);
-        cassandraHostConfigurator.setAutoDiscoverHosts(true);
-        cassandraHostConfigurator.setAutoDiscoveryDelayInSeconds(10);
+        
+        if (cmd.hasOption("discovery-delay")) {
+            cassandraHostConfigurator.setAutoDiscoverHosts(true);
+            cassandraHostConfigurator.setAutoDiscoveryDelayInSeconds(getIntValueOrExit(cmd, "discovery-delay"));
+        }
+        if (cmd.hasOption("retry-delay")) {          
+            cassandraHostConfigurator.setRetryDownedHostsDelayInSeconds(getIntValueOrExit(cmd, "retry-delay"));
+        } 
+        if (cmd.hasOption("skip-retry-delay")) {          
+            cassandraHostConfigurator.setRetryDownedHosts(false);
+        } 
+        
         
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
@@ -169,9 +185,11 @@ public class Stress {
         options.addOption("b","batch-size",true,"The number of rows in the batch_mutate call");        
         options.addOption("m","unframed",false,"Disable use of TFramedTransport");
         options.addOption("w","colwidth",true,"The widht of the column in bytes. Default is 16");
-        options.addOption("mw","max-wait",true,"The Maximum time to wait on aquiring a connection from the pool (maxWaitTimeWhenExhausted). Default is forever.");
-        options.addOption("tt","thrift-timeout",true,"The ThriftSocketTimeout value.");
-        options.addOption("concurrent",false,"Use the concurrent host pool implementation");
+        options.addOption("M","max-wait",true,"The Maximum time to wait on aquiring a connection from the pool (maxWaitTimeWhenExhausted). Default is forever.");
+        options.addOption("T","thrift-timeout",true,"The ThriftSocketTimeout value.");
+        options.addOption("D","discovery-delay",true,"The amount of time to wait between runs of Auto host discovery. Providing a value enables this service");
+        options.addOption("R","retry-delay",true,"The amount of time to wait between runs of Downed host retry delay execution. 30 seconds by default.");
+        options.addOption("S","skip-retry-delay",false,"Disable downed host retry service execution.");
         return options;
     }
     
