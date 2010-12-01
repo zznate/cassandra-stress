@@ -4,7 +4,7 @@
 
 	<groupId>com.riptano.cassandra.stress</groupId>
 	<artifactId>cassandra-stress</artifactId>
-	<version>0.7_11042010</version>
+	<version>0.7_20</version>
 	<packaging>jar</packaging>
 
 	<name>cassandra-stress</name>
@@ -107,7 +107,7 @@
 		<dependency>
 			<groupId>me.prettyprint</groupId>
 			<artifactId>hector</artifactId>
-			<version>0.7.0-19_11162010</version>
+			<version>0.7.0-20</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
