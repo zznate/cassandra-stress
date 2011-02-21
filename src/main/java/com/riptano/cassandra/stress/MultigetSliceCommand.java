@@ -28,7 +28,7 @@ public class MultigetSliceCommand extends StressCommand {
     @Override
     public Void call() throws Exception {
         int rows = 0;
-        multigetSliceQuery.setColumnFamily("Standard1");
+        multigetSliceQuery.setColumnFamily(commandArgs.workingColumnFamily);
         log.debug("Starting MultigetSliceCommand");
         String[] keys = new String[commandArgs.batchSize];
         try {

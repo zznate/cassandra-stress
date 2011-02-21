@@ -161,7 +161,7 @@ public class Stress {
         
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
-        commandArgs.keyspace = HFactory.createKeyspace("Keyspace1", cluster);
+        commandArgs.keyspace = HFactory.createKeyspace("StressKeyspace", cluster);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
         if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {            
             commandRunner.processCommand(commandArgs);

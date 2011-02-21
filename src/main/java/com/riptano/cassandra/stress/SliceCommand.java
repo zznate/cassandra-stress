@@ -30,7 +30,7 @@ public class SliceCommand extends StressCommand {
     public Void call() throws Exception {
         int rows = 0;
         Random random = new Random();
-        sliceQuery.setColumnFamily("Standard1");
+        sliceQuery.setColumnFamily(commandArgs.workingColumnFamily);
         log.debug("Starting SliceCommand");
         try {
             while (rows < commandArgs.getKeysPerThread()) {

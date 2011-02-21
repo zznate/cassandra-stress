@@ -27,7 +27,7 @@ public class RangeSliceCommand extends StressCommand {
     @Override
     public Void call() throws Exception {
         int rows = 0;
-        rangeSlicesQuery.setColumnFamily("Standard1");
+        rangeSlicesQuery.setColumnFamily(commandArgs.workingColumnFamily);
         log.debug("Starting SliceCommand");
         try {
             while (rows < commandArgs.getKeysPerThread()) {

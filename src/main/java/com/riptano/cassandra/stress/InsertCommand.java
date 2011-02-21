@@ -40,7 +40,7 @@ public class InsertCommand extends StressCommand {
             for (int j = 0; j < commandArgs.batchSize; j++) {
                 key = String.format(KEY_FORMAT, rows+startKey);
                 for (int j2 = 0; j2 < commandArgs.columnCount; j2++) {
-                    mutator.addInsertion(key, "Standard1", HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, j2),
+                    mutator.addInsertion(key, commandArgs.workingColumnFamily, HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, j2),
                             String.format(COLUMN_VAL_FORMAT, j2, RandomStringUtils.random(colWidth))));                    
                 }
                 

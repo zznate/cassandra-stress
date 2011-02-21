@@ -13,6 +13,8 @@ public class CommandArgs {
     public int threads = DEF_CLIENTS;
     public int clients = DEF_CLIENTS;
     public int replayCount = DEF_REPLAY_COUNT;
+    public String workingKeyspace = DEF_KEYSPACE;
+    public String workingColumnFamily = DEF_COLUMN_FAMILY;
     
     private static int DEF_CLIENTS = 50;
     private static int DEF_INSERT_COUNT = 10000;
@@ -21,6 +23,8 @@ public class CommandArgs {
     private static String DEF_OPERATION = "insert";
     private static int DEF_REPLAY_COUNT = 0;
     private static int DEF_COLUMN_WIDTH = 16;
+    private static String DEF_KEYSPACE = "StressKeyspace";
+    private static String DEF_COLUMN_FAMILY = "StressStandard";
     
     public int getKeysPerThread() {
         // TODO check if batchSize is greater than this, reset if so
