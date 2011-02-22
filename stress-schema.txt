@@ -10,6 +10,3 @@ create column family StressStandard
     and memtable_flush_after = 1440
     and memtable_throughput = 32;
 
-create keyspace Tutorial
-    with replication_factor = 2
-    and placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy';
