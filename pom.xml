@@ -55,6 +55,7 @@
 						<name>stress</name>
 					</program>
 				</programs>
+				<extraJvmArguments>-agentpath:/usr/local/yjp/bin/linux-x86-64/libyjpagent.so</extraJvmArguments>
 				<repositoryLayout>flat</repositoryLayout>
 			</configuration>
 			<executions>
@@ -107,7 +108,7 @@
 		<dependency>
 			<groupId>me.prettyprint</groupId>
 			<artifactId>hector-core</artifactId>
-			<version>0.7.0-27-SNAPSHOT</version>
+			<version>0.7.0-28</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -124,6 +125,11 @@
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.6.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jul-to-slf4j</artifactId>
+			<version>1.6.1</version>
+		</dependency>		
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
