@@ -1,8 +1,11 @@
 package com.riptano.cassandra.stress;
 
 import jline.ConsoleReader;
+import me.prettyprint.cassandra.model.ConfigurableConsistencyLevel;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import me.prettyprint.hector.api.Cluster;
+import me.prettyprint.hector.api.ConsistencyLevelPolicy;
+import me.prettyprint.hector.api.HConsistencyLevel;
 import me.prettyprint.hector.api.factory.HFactory;
 
 import org.apache.commons.cli.CommandLine;
@@ -157,11 +160,22 @@ public class Stress {
         if (cmd.hasOption("skip-retry-delay")) {          
             cassandraHostConfigurator.setRetryDownedHosts(false);
         } 
-        
+        ConfigurableConsistencyLevel clc = null;
+        if ( cmd.hasOption("consistency-levels")) {
+            String[] levels = cmd.getOptionValues("consistency-levels")[0].split(":");
+            clc = new ConfigurableConsistencyLevel();                        
+            try {
+              clc.setDefaultReadConsistencyLevel(HConsistencyLevel.valueOf(levels[0]));
+              clc.setDefaultWriteConsistencyLevel(HConsistencyLevel.valueOf(levels[1]));
+            } catch (Exception e) {
+              throw new IllegalArgumentException("ConsistencyLevels must be specified by their full names. Ie. ONE,QUORUM. " + levels[0]);
+            }
+        }
         
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
         
-        commandArgs.keyspace = HFactory.createKeyspace("StressKeyspace", cluster);
+        commandArgs.keyspace = clc == null ? HFactory.createKeyspace("StressKeyspace", cluster) : 
+          HFactory.createKeyspace("StressKeyspace", cluster, clc);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
         if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {            
             commandRunner.processCommand(commandArgs);
@@ -178,6 +192,7 @@ public class Stress {
     private static Options buildOptions() {
         Options options = new Options();
         options.addOption("h", "help", false, "Print this help message and exit");
+        options.addOption("o","operation", true, "The type of operation: insert or select");
         options.addOption("t","threads", true, "The number of client threads we will create");
         options.addOption("n","num-keys",true,"The number of keys to create");
         options.addOption("c","columns",true,"The number of columsn to create per key");
@@ -190,6 +205,7 @@ public class Stress {
         options.addOption("D","discovery-delay",true,"The amount of time to wait between runs of Auto host discovery. Providing a value enables this service");
         options.addOption("R","retry-delay",true,"The amount of time to wait between runs of Downed host retry delay execution. 30 seconds by default.");
         options.addOption("S","skip-retry-delay",false,"Disable downed host retry service execution.");
+        options.addOption("L","consistency-levels",true,"Defaults to QUORUM for R+W, specified in the form of [read]:[write] eg. '-L ONE:ONE'");
         return options;
     }
     
