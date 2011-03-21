@@ -14,34 +14,9 @@ cassandra-stress is a currently just a command line app which supports the follo
 	usage: stress [options]... url1,[[url2],[url3],...]
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
 	 -c,--columns <arg>      The number of columsn to create per key
-	 -m,--unframed           Disable use of TFramedTransport
-	 -n,--num-keys <arg>     The number of keys to create
 	 -o,--operation <arg>    One of insert, read, rangeslice, multiget
 	 -t,--threads <arg>      The number of client threads to create
 	 -h,--help               Print this help message and exit
-
-
-This project now runs as a stand-alone binary via the Maven app-assempbler plugin. You must first clone the source of the project, then using maven, execute the install goal:
-
-`mvn install`
-
-Move to the directory where the artiffacts are assembled:
-
-`cd taget/appassembler`
-
-Now you can execute the script directly as needed:
-
-`sh bin/stress -o insert -b 50 -n 12000 localhost:9160`
-
-This will perform the operation then drop you into a shell in which you can perform additional operations. The command syntax is similar to the initial call, except that the operation is the only argument:  
-
-	[cassandra-stress] 
-	usage: operation [options]
-	operation can be one of: insert, read, rangeslice, multiget, replay [N]
-	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
-	 -t,--threads <arg>      The number of client threads we will create
-	 -c,--columns <arg>              The number of columsn to create per key
-	 -C,--clients <arg>              The number of pooled clients to use
 	 -D,--discovery-delay <arg>      The amount of time to wait between runs
 	                                 of Auto host discovery. Providing a value
 	                                 enables this service
@@ -67,6 +42,31 @@ This will perform the operation then drop you into a shell in which you can perf
 	 -w,--colwidth <arg>             The widht of the column in bytes. Default
 	                                 is 16
 
+
+
+
+This project now runs as a stand-alone binary via the Maven app-assempbler plugin. You must first clone the source of the project, then using maven, execute the install goal:
+
+`mvn install`
+
+Move to the directory where the artiffacts are assembled:
+
+`cd taget/appassembler`
+
+Now you can execute the script directly as needed:
+
+`sh bin/stress -o insert -b 50 -n 12000 localhost:9160`
+
+This will perform the operation then drop you into a shell in which you can perform additional operations. The command syntax is similar to the initial call, except that the operation is the only argument:  
+
+	[cassandra-stress] 
+	usage: operation [options]
+	operation can be one of: insert, read, rangeslice, multiget, replay [N]
+	 -o,--operation <arg>    One of insert, read, rangeslice, multiget
+	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
+	 -t,--threads <arg>      The number of client threads we will create
+	 -c,--columns <arg>              The number of columsn to create per key
+	 -C,--clients <arg>              The number of pooled clients to use
 
 To re-run the operation again, just type the operation name. So from the initial example above, re-running the read operation with the same parameters would be:  
 
