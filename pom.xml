@@ -55,7 +55,7 @@
 						<name>stress</name>
 					</program>
 				</programs>
-				<extraJvmArguments>-agentpath:/usr/local/yjp/bin/linux-x86-64/libyjpagent.so</extraJvmArguments>
+				<!-- <extraJvmArguments>-agentpath:/usr/local/yjp/bin/linux-x86-64/libyjpagent.so</extraJvmArguments> -->
 				<repositoryLayout>flat</repositoryLayout>
 			</configuration>
 			<executions>

@@ -68,7 +68,13 @@ public class CommandRunner {
         }        
     }
     
-    private StressCommand getCommandInstance(int startKey, CommandArgs commandArgs, CommandRunner commandRunner) {
+    private StressCommand getCommandInstance(int startKeyArg, CommandArgs commandArgs, CommandRunner commandRunner) {
+        
+        int startKey = commandArgs.startKey + startKeyArg;
+        if ( log.isDebugEnabled() ) {
+          log.debug("Command requested with starting key pos {}", startKey);
+        }
+        
         Operation operation = commandArgs.getOperation();
         if ( operation.equals(Operation.REPLAY )) {
             operation = previousOperation;

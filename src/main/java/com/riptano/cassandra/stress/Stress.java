@@ -90,7 +90,11 @@ public class Stress {
         if (cmd.hasOption("clients")) {
             commandArgs.clients = getIntValueOrExit(cmd, "clients");
         }
-            
+        
+        if (cmd.hasOption("start-key")) {
+          commandArgs.startKey = getIntValueOrExit(cmd, "start-key");
+        }
+         
             
         if ( cmd.hasOption("num-keys") ) {
             commandArgs.rowCount = getIntValueOrExit(cmd, "num-keys");
@@ -206,6 +210,7 @@ public class Stress {
         options.addOption("R","retry-delay",true,"The amount of time to wait between runs of Downed host retry delay execution. 30 seconds by default.");
         options.addOption("S","skip-retry-delay",false,"Disable downed host retry service execution.");
         options.addOption("L","consistency-levels",true,"Defaults to QUORUM for R+W, specified in the form of [read]:[write] eg. '-L ONE:ONE'");
+        options.addOption("k","start-key",true,"Start on a specific key");
         return options;
     }
     

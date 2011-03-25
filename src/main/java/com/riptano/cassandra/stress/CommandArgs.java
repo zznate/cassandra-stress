@@ -13,6 +13,7 @@ public class CommandArgs {
     public int threads = DEF_CLIENTS;
     public int clients = DEF_CLIENTS;
     public int replayCount = DEF_REPLAY_COUNT;
+    public int startKey = DEF_START_KEY;
     public String workingKeyspace = DEF_KEYSPACE;
     public String workingColumnFamily = DEF_COLUMN_FAMILY;
     
@@ -23,6 +24,7 @@ public class CommandArgs {
     private static String DEF_OPERATION = "insert";
     private static int DEF_REPLAY_COUNT = 0;
     private static int DEF_COLUMN_WIDTH = 16;
+    private static int DEF_START_KEY = 0;
     private static String DEF_KEYSPACE = "StressKeyspace";
     private static String DEF_COLUMN_FAMILY = "StressStandard";
     
