@@ -41,7 +41,10 @@ public class InsertCommand extends StressCommand {
                 key = String.format(KEY_FORMAT, rows+startKey);
                 for (int j2 = 0; j2 < commandArgs.columnCount; j2++) {
                     mutator.addInsertion(key, commandArgs.workingColumnFamily, HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, j2),
-                            String.format(COLUMN_VAL_FORMAT, j2, RandomStringUtils.random(colWidth))));                    
+                            String.format(COLUMN_VAL_FORMAT, j2, RandomStringUtils.random(colWidth))));     
+                    if ( j2 > 0 && j2 % commandArgs.batchSize == 0 ) {
+                      executeMutator(rows);
+                    }
                 }
                 
                 if (++rows == commandArgs.getKeysPerThread() ) {
@@ -49,18 +52,7 @@ public class InsertCommand extends StressCommand {
                 }
                 
             }
-            try {
-                MutationResult mr = mutator.execute();
-                LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
-                if ( writeCount != null )
-                  writeCount.addMicro(mr.getExecutionTimeMicro());
-                mutator.discardPendingMutations();
-
-                log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
-
-            } catch (Exception ex){
-                log.error("Problem executing insert:",ex);
-            }
+            executeMutator(rows);
         }
         commandRunner.doneSignal.countDown();
         log.info("Last key was: {} for thread {}", key, Thread.currentThread().getId());
@@ -72,6 +64,21 @@ public class InsertCommand extends StressCommand {
         
         log.info("Executed chunk of {}. Latch now at {}", commandArgs.getKeysPerThread(), commandRunner.doneSignal.getCount());
         return null;
+    }
+
+    private void executeMutator(int rows) {
+      try {
+          MutationResult mr = mutator.execute();
+          LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
+          if ( writeCount != null )
+            writeCount.addMicro(mr.getExecutionTimeMicro());
+          mutator.discardPendingMutations();
+
+          log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
+
+      } catch (Exception ex){
+          log.error("Problem executing insert:",ex);
+      }
     }
     
     private static final String COLUMN_VAL_FORMAT = "%08d_%s";

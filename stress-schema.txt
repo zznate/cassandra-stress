@@ -1,6 +1,6 @@
-create keyspace StressKeyspace
-    with replication_factor = 1
-    and placement_strategy = 'org.apache.cassandra.locator.SimpleStrategy';
+create keyspace StressKeyspace 
+    with placement_strategy = 'SimpleStrategy' 
+    and strategy_options = [{replication_factor : 1}];
 
 use StressKeyspace;
 drop column family StressStandard;
