@@ -69,9 +69,12 @@ public class InsertCommand extends StressCommand {
     private void executeMutator(int rows) {
       try {
           MutationResult mr = mutator.execute();
-          LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
-          if ( writeCount != null )
-            writeCount.addMicro(mr.getExecutionTimeMicro());
+          // could be null here when our batch size is zero
+          if ( mr.getHostUsed() != null ) {
+            LatencyTracker writeCount = commandRunner.latencies.get(mr.getHostUsed());
+            if ( writeCount != null )
+              writeCount.addMicro(mr.getExecutionTimeMicro());
+          }
           mutator.discardPendingMutations();
 
           log.info("executed batch of {}. {} of {} complete", new Object[]{commandArgs.batchSize, rows, commandArgs.getKeysPerThread()});
