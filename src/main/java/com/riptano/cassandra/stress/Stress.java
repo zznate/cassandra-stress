@@ -1,11 +1,16 @@
 package com.riptano.cassandra.stress;
 
+import java.util.Arrays;
+
 import jline.ConsoleReader;
 import me.prettyprint.cassandra.model.ConfigurableConsistencyLevel;
 import me.prettyprint.cassandra.service.CassandraHostConfigurator;
+import me.prettyprint.cassandra.service.ThriftKsDef;
 import me.prettyprint.hector.api.Cluster;
-import me.prettyprint.hector.api.ConsistencyLevelPolicy;
 import me.prettyprint.hector.api.HConsistencyLevel;
+import me.prettyprint.hector.api.ddl.ColumnFamilyDefinition;
+import me.prettyprint.hector.api.ddl.ComparatorType;
+import me.prettyprint.hector.api.ddl.KeyspaceDefinition;
 import me.prettyprint.hector.api.factory.HFactory;
 
 import org.apache.commons.cli.CommandLine;
@@ -23,7 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Stress {
     
-    private static Logger log = LoggerFactory.getLogger(Stress.class);       
+    private static Logger log = LoggerFactory.getLogger(Stress.class);
     
     private CommandArgs commandArgs;
     private CommandRunner commandRunner;
@@ -177,11 +182,23 @@ public class Stress {
         }
         
         Cluster cluster = HFactory.createCluster("StressCluster", cassandraHostConfigurator);
-        
-        commandArgs.keyspace = clc == null ? HFactory.createKeyspace("StressKeyspace", cluster) : 
-          HFactory.createKeyspace("StressKeyspace", cluster, clc);
+
+        // Populate schema if needed.
+        KeyspaceDefinition ksDef = cluster.describeKeyspace(commandArgs.workingKeyspace);
+        if (ksDef == null) {
+            ColumnFamilyDefinition cfDef = HFactory.createColumnFamilyDefinition(
+                commandArgs.workingKeyspace, commandArgs.workingColumnFamily, ComparatorType.BYTESTYPE);
+
+            KeyspaceDefinition newKeyspace = HFactory.createKeyspaceDefinition(
+                commandArgs.workingKeyspace, ThriftKsDef.DEF_STRATEGY_CLASS, 1, Arrays.asList(cfDef));
+
+            cluster.addKeyspace(newKeyspace, true);
+        }
+
+        commandArgs.keyspace = clc == null ? HFactory.createKeyspace(commandArgs.workingKeyspace, cluster) : 
+          HFactory.createKeyspace(commandArgs.workingKeyspace, cluster, clc);
         commandRunner = new CommandRunner(cluster.getKnownPoolHosts(true));
-        if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {            
+        if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {
             commandRunner.processCommand(commandArgs);
         } else {
             throw new IllegalArgumentException();

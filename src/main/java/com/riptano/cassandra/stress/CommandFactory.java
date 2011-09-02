@@ -1,6 +1,5 @@
 package com.riptano.cassandra.stress;
 
-import java.util.concurrent.CountDownLatch;
 
 public class CommandFactory {
 

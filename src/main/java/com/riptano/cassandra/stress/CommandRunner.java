@@ -1,7 +1,6 @@
 package com.riptano.cassandra.stress;
 
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +30,7 @@ public class CommandRunner {
     private Operation previousOperation;
     
     public CommandRunner(Set<CassandraHost> cassandraHosts) {
-        latencies = new ConcurrentHashMap<CassandraHost, LatencyTracker>();        
+        latencies = new ConcurrentHashMap<CassandraHost, LatencyTracker>();
         for (CassandraHost host : cassandraHosts) {
             latencies.put(host, new LatencyTracker());
         }        
