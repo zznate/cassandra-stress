@@ -62,13 +62,15 @@ This will perform the operation then drop you into a shell in which you can perf
 	[cassandra-stress] 
 	usage: operation [options]
 	operation can be one of: insert, read, rangeslice, multiget, replay [N]
-	 -o,--operation <arg>    One of insert, read, rangeslice, multiget, verify_last_insert
+	 -o,--operation <arg>    One of insert, read, rangeslice, multiget, verify_last_insert (1)
 	 -b,--batch-size <arg>   The number of rows in the batch_mutate call
 	 -t,--threads <arg>      The number of client threads we will create
 	 -c,--columns <arg>              The number of columsn to create per key
 	 -C,--clients <arg>              The number of pooled clients to use
 
 To re-run the operation again, just type the operation name. So from the initial example above, re-running the read operation with the same parameters would be:  
+
+(1) Must run single thread (-t 1) and QUORUM:QUORUM. Intended to test in a cluster of at least 3 nodes RF = 3.
 
 `[cassanra-stress] read`
 
