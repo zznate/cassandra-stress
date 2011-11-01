@@ -87,6 +87,8 @@ public class CommandRunner {
             return new RangeSliceCommand(startKey, commandArgs, commandRunner);
         case MULTIGET:
             return new MultigetSliceCommand(startKey, commandArgs, commandRunner);
+        case VERIFY_LAST_INSERT:
+          return new VerifyLastInsertCommand(startKey, commandArgs, commandRunner);
         };
         return new InsertCommand(startKey, commandArgs, commandRunner);
     }

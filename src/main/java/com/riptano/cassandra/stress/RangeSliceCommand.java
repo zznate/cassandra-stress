@@ -1,7 +1,5 @@
 package com.riptano.cassandra.stress;
 
-import java.util.concurrent.CountDownLatch;
-
 import me.prettyprint.cassandra.serializers.StringSerializer;
 import me.prettyprint.hector.api.beans.OrderedRows;
 import me.prettyprint.hector.api.factory.HFactory;
