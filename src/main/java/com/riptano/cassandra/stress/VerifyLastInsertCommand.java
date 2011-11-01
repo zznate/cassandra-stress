@@ -45,34 +45,36 @@ public class VerifyLastInsertCommand extends StressCommand {
 
     @Override
     public Void call() throws Exception {
+      log.debug("Starting VerifyLastInsertCommand");
+      String key = "test";
+      sliceQuery.setColumnFamily(commandArgs.workingColumnFamily);
 
-        String key = "test";
-        sliceQuery.setColumnFamily(commandArgs.workingColumnFamily);
+      log.info("StartKey: {} for thread {}", key, Thread.currentThread().getId());
+      String colValue;
 
-        log.info("StartKey: {} for thread {}", key, Thread.currentThread().getId());
-        String colValue;
+      for (int col = 0; col < commandArgs.columnCount; col++) {
+        colValue = String.format(COLUMN_VAL_FORMAT, col);
+        mutator.addInsertion(key, 
+                             commandArgs.workingColumnFamily, 
+                             HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, col),
+                                 colValue));
+        executeMutator(col);
 
-        for (int col = 0; col < commandArgs.columnCount; col++) {
-            colValue = String.format(COLUMN_VAL_FORMAT, col);
-            mutator.addInsertion(key, 
-                                 commandArgs.workingColumnFamily, 
-                                 HFactory.createStringColumn(String.format(COLUMN_NAME_FORMAT, col),
-                                     colValue));
-            executeMutator(col);
+        // Let's verify
+        sliceQuery.setKey(key);
+        sliceQuery.setRange(null, null, true, 1);
+        QueryResult<ColumnSlice<String,String>> result = sliceQuery.execute();
+        String actualValue = result.get().getColumns().get(0).getValue();
 
-            // Let's verify
-            sliceQuery.setKey(key);
-            sliceQuery.setRange(null, null, true, 1);
-            QueryResult<ColumnSlice<String,String>> result = sliceQuery.execute();
-            String actualValue = result.get().getColumns().get(0).getValue();
-            if (!actualValue.equals(colValue)) {
-              log.error("Column values don't match. Expected: " + colValue + " - Actual: " + actualValue);
-              break;
-            }
+        if (!actualValue.equals(colValue)) {
+          log.error("Column values don't match. Expected: " + colValue + " - Actual: " + actualValue);
+          break;
         }
+      }
 
-        commandRunner.doneSignal.countDown();
-        return null;
+      commandRunner.doneSignal.countDown();
+      log.debug("VerifyLastInsertCommand complete");
+      return null;
     }
 
     private void executeMutator(int cols) {
@@ -93,6 +95,6 @@ public class VerifyLastInsertCommand extends StressCommand {
       }
     }
     
-    private static final String COLUMN_VAL_FORMAT = "%08d_%s";
-    private static final String COLUMN_NAME_FORMAT = "col_%08d";
+    private static final String COLUMN_VAL_FORMAT = "%08d";
+    private static final String COLUMN_NAME_FORMAT = "%08d";
 }
