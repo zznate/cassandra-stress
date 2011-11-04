@@ -72,7 +72,7 @@ To re-run the operation again, just type the operation name. So from the initial
 
 (1) Must run single thread (-t 1) and QUORUM:QUORUM. Intended to test in a cluster of at least 3 nodes RF = 3.
 
-`[cassanra-stress] read`
+`[cassandra-stress] read`
 
 
 The main benefit of going into a shell is that it keeps the JVM and connection pool machinery warm, so additional test runs will not have the overhead of spinning everything up. This has the added benefit of providing conitnuous access to Hector's JMX stats as well. 
