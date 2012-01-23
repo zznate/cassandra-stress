@@ -1,26 +1,20 @@
 package com.riptano.cassandra.stress;
 
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
-
-import org.apache.cassandra.utils.LatencyTracker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import me.prettyprint.cassandra.serializers.StringSerializer;
-import me.prettyprint.cassandra.service.CassandraHost;
 import me.prettyprint.cassandra.service.HColumnFamilyImpl;
 import me.prettyprint.hector.api.HColumnFamily;
-import me.prettyprint.hector.api.Keyspace;
-import me.prettyprint.hector.api.beans.ColumnSlice;
 import me.prettyprint.hector.api.factory.HFactory;
-import me.prettyprint.hector.api.query.QueryResult;
 import me.prettyprint.hector.api.query.SliceQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SliceCommand extends StressCommand {
     private static Logger log = LoggerFactory.getLogger(SliceCommand.class);
     
     private final SliceQuery<String, String, String> sliceQuery;
+    // TODO replace with CFT!
     private final HColumnFamily<String, String> columnFamily;
     
     private static StringSerializer se = StringSerializer.get();

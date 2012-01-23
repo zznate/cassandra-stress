@@ -201,7 +201,7 @@ public class Stress {
         if ( commandArgs.validateCommand() && commandArgs.getOperation() != Operation.REPLAY) {
             commandRunner.processCommand(commandArgs);
         } else {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("command: " + commandArgs.getOperation().toString());
         }
     }
 

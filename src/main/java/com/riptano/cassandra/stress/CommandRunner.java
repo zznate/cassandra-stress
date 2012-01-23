@@ -71,7 +71,7 @@ public class CommandRunner {
         
         int startKey = commandArgs.startKey + startKeyArg;
         if ( log.isDebugEnabled() ) {
-          log.debug("Command requested with starting key pos {}", startKey);
+          log.debug("Command requested with starting key pos {} and op {}", startKey, commandArgs.getOperation());
         }
         
         Operation operation = commandArgs.getOperation();
@@ -89,6 +89,8 @@ public class CommandRunner {
             return new MultigetSliceCommand(startKey, commandArgs, commandRunner);
         case VERIFY_LAST_INSERT:
           return new VerifyLastInsertCommand(startKey, commandArgs, commandRunner);
+        case COUNTER_SPREAD:
+          return new BucketingCounterSpreadCommand(startKey, commandArgs, commandRunner);
         };
         return new InsertCommand(startKey, commandArgs, commandRunner);
     }

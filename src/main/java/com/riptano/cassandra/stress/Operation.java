@@ -6,7 +6,8 @@ public enum Operation {
     RANGESLICE("rangeslice"),
     MULTIGET("multiget"),
     REPLAY("replay"),
-    VERIFY_LAST_INSERT("verifylastinsert");
+    VERIFY_LAST_INSERT("verifylastinsert"),
+    COUNTERSPREAD("counterspread");
     
     private final String op;
     
