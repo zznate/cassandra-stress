@@ -1,12 +1,13 @@
 create keyspace StressKeyspace 
     with placement_strategy = 'SimpleStrategy' 
-    and strategy_options = [{replication_factor : 1}];
+    and strategy_options = {replication_factor : 1};
 
 use StressKeyspace;
 drop column family StressStandard;
 create column family StressStandard
+    with comparator = UTF8Type;
+
+create column family CounterCf
     with comparator = UTF8Type
-    and keys_cached = 10000
-    and memtable_flush_after = 1440
-    and memtable_throughput = 32;
+    and default_validation_class = CounterColumnType;
 
