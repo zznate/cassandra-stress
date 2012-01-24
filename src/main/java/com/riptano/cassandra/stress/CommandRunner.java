@@ -89,7 +89,7 @@ public class CommandRunner {
             return new MultigetSliceCommand(startKey, commandArgs, commandRunner);
         case VERIFY_LAST_INSERT:
           return new VerifyLastInsertCommand(startKey, commandArgs, commandRunner);
-        case COUNTER_SPREAD:
+        case COUNTERSPREAD:
           return new BucketingCounterSpreadCommand(startKey, commandArgs, commandRunner);
         };
         return new InsertCommand(startKey, commandArgs, commandRunner);

@@ -8,7 +8,10 @@ import me.prettyprint.cassandra.service.BatchSizeHint;
 import me.prettyprint.hector.api.beans.HCounterColumn;
 import me.prettyprint.hector.api.factory.HFactory;
 import me.prettyprint.hector.api.mutation.Mutator;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.FastDateFormat;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Testing a scenario where HH *might* cause counter replication to loop
@@ -17,6 +20,8 @@ import org.apache.commons.lang.time.FastDateFormat;
  * @author zznate
  */
 public class BucketingCounterSpreadCommand extends StressCommand {
+
+  private static Logger log = LoggerFactory.getLogger(BucketingCounterSpreadCommand.class);
 
   private static final long MINS_IN_YEAR = 525600L;
   private static final long MINS_IN_MONTH = 43800L;
@@ -31,66 +36,70 @@ public class BucketingCounterSpreadCommand extends StressCommand {
 
   @Override
   public Void call() throws Exception {
-
+    log.info("In call on counter insert");
     Mutator<String> counterMutator =
       HFactory.createMutator(commandArgs.keyspace, StringSerializer.get(), new BatchSizeHint(500,2));
-    int x=0;
-    for(; x < MINS_IN_YEAR; x++) {
+    int rows = 0;
+    for (;rows < commandArgs.getKeysPerThread(); rows++) {
+
+      log.info("current count {}", rows);
       // build all bucket - 1 row
-      new CounterColumnBuilder(BucketType.ALL,x)
+      new CounterColumnBuilder(BucketType.ALL,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // 12 rows
-      new CounterColumnBuilder(BucketType.MONTH,x)
+      new CounterColumnBuilder(BucketType.MONTH,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // 52 rows
-      new CounterColumnBuilder(BucketType.WEEK,x)
+      new CounterColumnBuilder(BucketType.WEEK,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // 365 rows
-      new CounterColumnBuilder(BucketType.DAY,x)
+      new CounterColumnBuilder(BucketType.DAY,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // 8760 rows
-      new CounterColumnBuilder(BucketType.HOUR,x)
+      new CounterColumnBuilder(BucketType.HOUR,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // 525600 rows
-      new CounterColumnBuilder(BucketType.MINUTE,x)
+      new CounterColumnBuilder(BucketType.MINUTE,rows)
         .applyClicks(1)
         .applyView(1)
         .addToMutation(counterMutator);
 
       // TODO test≈ auto-batching here
-      if ( x % 500 == 0) {
-        executeMutator(counterMutator, x);
+      if ( rows % 500 == 0) {
+        log.info("mutator fired on 500");
+        executeMutator(counterMutator, rows);
       }
     }
-    executeMutator(counterMutator,x);
-
+    executeMutator(counterMutator,0);
+    commandRunner.doneSignal.countDown();
 
     return null;  
   }
 
 
-  static class CounterColumnBuilder {
+  class CounterColumnBuilder {
     private HCounterColumn<String> clicksCounter;
     private HCounterColumn<String> viewsCounter;
     private final String keyString;
 
-    CounterColumnBuilder(BucketType bucketType, long minInYear) {
-      this.keyString = bucketType.formatDate(minInYear * 60 * 1000);
+    CounterColumnBuilder(BucketType bucketType, long rowNumber) {
+      this.keyString = bucketType.formatDate(System.currentTimeMillis() + (rowNumber * 60 * 1000));
+      log.info("using keyString {}",keyString);
     }
 
     CounterColumnBuilder applyClicks(long clicks) {
@@ -104,8 +113,8 @@ public class BucketingCounterSpreadCommand extends StressCommand {
     }
 
     void addToMutation(Mutator<String> mutator) {
-      mutator.addCounter(keyString,"CounterCf",clicksCounter);
       mutator.addCounter(keyString,"CounterCf",viewsCounter);
+      mutator.addCounter(keyString,"CounterCf",clicksCounter);
     }
   }
 
@@ -115,16 +124,19 @@ public class BucketingCounterSpreadCommand extends StressCommand {
    */
   enum BucketType {
     ALL("__ALL__"),
-    MONTH("YYYY_MM"),
-    WEEK("YYYY_MM_w"),
-    DAY("YYYY_MM_dd"),
-    HOUR("YYYY_MM_dd_hh"),
-    MINUTE("YYYY_MM_dd_hh_mm");
+    MONTH("yyyy_MM"),
+    WEEK("yyyy_MM_w"),
+    DAY("yyyy_MM_dd"),
+    HOUR("yyyy_MM_dd_hh"),
+    MINUTE("yyyy_MM_dd_hh_mm");
 
-    final FastDateFormat formatter;
+    FastDateFormat formatter;
 
     BucketType(String format) {
-      this.formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("GMT"));
+      if ( !StringUtils.equals(format,"__ALL__")) {
+        this.formatter = FastDateFormat.getInstance(format, TimeZone.getTimeZone("GMT"));
+      }
+
     }
 
     /**
@@ -142,6 +154,9 @@ public class BucketingCounterSpreadCommand extends StressCommand {
 
     @Override
     public String toString() {
+      if ( formatter == null ) {
+        return "__ALL__";
+      }
       return formatter.getPattern();
     }
   }
