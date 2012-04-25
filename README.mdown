@@ -51,7 +51,7 @@ This project now runs as a stand-alone binary via the Maven app-assempbler plugi
 
 Move to the directory where the artiffacts are assembled:
 
-`cd taget/appassembler`
+`cd target/appassembler`
 
 Now you can execute the script directly as needed:
 
